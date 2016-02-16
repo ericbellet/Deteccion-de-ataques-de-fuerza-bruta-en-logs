@@ -41,3 +41,8 @@ df2 <- df[,"start_time"]
 valor <- as.POSIXct(df2, origin="1970-01-01")
 df["start_time"] <- valor
 
+
+#Realizamos validación cruzada
+ind <- sample(2, nrow(df), replace=TRUE, prob=c(0.7, 0.3))
+trainData <- df[ind==1,]
+testData <- df[ind==2,]
