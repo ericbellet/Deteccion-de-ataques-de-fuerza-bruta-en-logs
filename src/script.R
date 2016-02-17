@@ -1,32 +1,62 @@
 library('ProjectTemplate')
 library(dplyr)
-'''
-CalculateSampleCovariance <- function(x, y, verbose = TRUE) {
-  # Computes the sample covariance between two vectors.
-  #
-  # Args:
-  #   x: One of two vectors whose sample covariance is to be calculated.
-  #   y: The other vector. x and y must have the same length, greater than one,
-  #      with no missing values.
-  #   verbose: If TRUE, prints sample covariance; if not, not. Default is TRUE.
-  #
-  # Returns:
-  #   The sample covariance between x and y.
-  n <- length(x)
-  # Error handling
-  if (n <= 1 || n != length(y)) {
-    stop("Arguments x and y have different lengths: ",
-         length(x), " and ", length(y), ".")
-  }
-  if (TRUE %in% is.na(x) || TRUE %in% is.na(y)) {
-    stop(" Arguments x and y must not have missing values.")
-  }
-  covariance <- var(x, y)
-  if (verbose)
-    cat("Covariance = ", round(covariance, 4), ".\n", sep = "")
-  return(covariance)
-}
+library(caret)
+library(kknn)
+library(plyr)
 
+
+#Leemos el .csv
+df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.csv")  # read csv file 
+#Modificamos la columna star_time a un formato mas entendible y guardamos la modificacion en el dataframe.
+df2 <- df[,"start_time"]
+valor <- as.POSIXct(df2, origin="1970-01-01")
+df["start_time"] <- valorins
+df <- arrange(df, start_time,source_ip)
+
+obj <- select(df,source_ip, start_time, destination_port, num_packets, num_bytes)
+
+
+x <- ddply(df,~source_ip,summarise,NumIpDestination = length(destination_ip))
+x <- arrange(x, NumIpDestination)
+plot(x, type = "o")
+
+y <- ddply(df, ~source_ip, summarise, NumPuertos = length(destination_port))
+y <- arrange(y, NumPuertos)
+
+lx<-length(x$source_ip)
+ly<-length(x$source_ip)
+
+
+
+
+destinationport <- unique(df$destination_port)
+
+totalipsource <- length(unique(df$source_ip))
+ipsource <- unique(df$source_ip)
+
+for (i in ipsource){
+  
+  newdata <- subset(df, source_ip == i, 
+                  select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+  
+  
+}
+'''
+#Calculamos la cantidad de filas
+n <- dim(df)[1]
+
+#Utilizamos 5 folds
+folds <- createFolds(1:n, 200000)
+  
+for (k in 1:200000){
+    muestra <- folds[[k]]
+    testData <- df[muestra, ]
+    trainingData <- df[-muestra, ]
+    modelo <- train.kknn(source_port ~ ., data = trainingData, kmax = 5)
+    prediccion <- predict(modelo, testData[, -200000])
+    
+    
+}
 
 ########################################
 filter(flights, month == 1, day == 1)
@@ -34,15 +64,3 @@ select(flights, year, month, day)
 distinct(select(flights, tailnum))
 ########################################
 '''
-#Leemos el .csv
-df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.csv")  # read csv file 
-#Modificamos la columna star_time a un formato mas entendible y guardamos la modificacion en el dataframe.
-df2 <- df[,"start_time"]
-valor <- as.POSIXct(df2, origin="1970-01-01")
-df["start_time"] <- valor
-
-
-#Realizamos validación cruzada
-ind <- sample(2, nrow(df), replace=TRUE, prob=c(0.7, 0.3))
-trainData <- df[ind==1,]
-testData <- df[ind==2,]
