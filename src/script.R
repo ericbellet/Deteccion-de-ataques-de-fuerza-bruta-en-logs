@@ -10,7 +10,7 @@ df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.cs
 #Modificamos la columna star_time a un formato mas entendible y guardamos la modificacion en el dataframe.
 df2 <- df[,"start_time"]
 valor <- as.POSIXct(df2, origin="1970-01-01")
-df["start_time"] <- valorins
+df["start_time"] <- valor
 df <- arrange(df, start_time,source_ip)
 
 obj <- select(df,source_ip, start_time, destination_port, num_packets, num_bytes)
@@ -29,18 +29,50 @@ ly<-length(x$source_ip)
 
 
 
-destinationport <- unique(df$destination_port)
+
 
 totalipsource <- length(unique(df$source_ip))
 ipsource <- unique(df$source_ip)
+
 
 for (i in ipsource){
   
   newdata <- subset(df, source_ip == i, 
                   select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
   
+  destinationport <- unique(newdata$destination_port)
+  
+  for (j in destinationport){
+    newdata2 <- subset(newdata, destination_port == j, 
+                      select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+    
+    numpackages <- unique(newdata2$num_packets)
+    for (k in numpackages){
+      newdata3 <- subset(newdata2, num_packets == k, 
+                        select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+  
+      numbytes <- unique(newdata3$num_bytes)
+      for (h in numbytes){
+        newdata4 <- subset(newdata3, num_bytes == h, 
+                           select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+        
+        starttime <- unique(newdata3$start_time)
+        for (m in numbytes){
+          newdata5 <- subset(newdata4, num_bytes == m, 
+                             select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+          
+          
+          
+        }
+        
+      }
+      
+    }
+  }
+  
   
 }
+
 '''
 #Calculamos la cantidad de filas
 n <- dim(df)[1]
