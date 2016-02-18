@@ -16,6 +16,8 @@
 * Editar config/global.dcf -> munging: FALSE
 * Modificar los setwd y load a las rutas correspondientes.
 * install.packages("dplyr")
+* install.packages("caret")
+* install.packages("kknn")
 
 ### Contenido
 

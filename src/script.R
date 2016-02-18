@@ -9,10 +9,9 @@ library(plyr)
 df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.csv")  # read csv file 
 #Modificamos la columna star_time a un formato mas entendible y guardamos la modificacion en el dataframe.
 df2 <- df[,"start_time"]
-valor <- as.POSIXct(df2, origin="1970-01-01")
-df["start_time"] <- valor
+df["start_time"] <- as.POSIXct(df2, origin="1970-01-01")
 df <- arrange(df, start_time,source_ip)
-
+df["start_time"][secs]
 obj <- select(df,source_ip, start_time, destination_port, num_packets, num_bytes)
 
 
@@ -60,8 +59,17 @@ for (i in ipsource){
         for (m in numbytes){
           newdata5 <- subset(newdata4, num_bytes == m, 
                              select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
+         
+          p <- 0
+          tiempos <- c()
           
-          
+          while (p != (length(newdata5$start_time))){
+            resultado <- newdata5$start_time[p+1] - newdata5$start_time[p]
+            units(resultado) <- "secs"
+            tiempos <- c(tiempos,resultado)
+            
+            p <- p + 1
+          }#endwhile
           
         }
         
