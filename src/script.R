@@ -11,7 +11,7 @@ df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.cs
 df2 <- df[,"start_time"]
 df["start_time"] <- as.POSIXct(df2, origin="1970-01-01")
 df <- arrange(df, start_time,source_ip)
-df["start_time"][secs]
+
 obj <- select(df,source_ip, start_time, destination_port, num_packets, num_bytes)
 
 
@@ -55,9 +55,9 @@ for (i in ipsource){
         newdata4 <- subset(newdata3, num_bytes == h, 
                            select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
         
-        starttime <- unique(newdata3$start_time)
-        for (m in numbytes){
-          newdata5 <- subset(newdata4, num_bytes == m, 
+        starttime <- unique(newdata4$start_time)
+        for (m in starttime){
+          newdata5 <- subset(newdata4, starttime == m, 
                              select=c(source_ip,start_time, destination_port, num_packets, num_bytes))
          
           p <- 0
