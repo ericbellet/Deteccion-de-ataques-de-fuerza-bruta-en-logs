@@ -17,10 +17,15 @@
 * Modificar los setwd y load a las rutas correspondientes.
 * install.packages("dplyr")
 * install.packages("caret")
-* install.packages("kknn")
+* install.packages('arules')
+* install.packages('sqldf')
+* install.packages('tidyr')
 
 ### Contenido
-
+* En la carpeta docs -> Diagrama QVM Process.
+* En la carpeta docs -> databook.
+* En la carpeta src -> script.R.
+* En la carpeta data -> Dataset de logs.
 
 ## Referencias
 * https://google.github.io/styleguide/Rguide.xml#identifiers

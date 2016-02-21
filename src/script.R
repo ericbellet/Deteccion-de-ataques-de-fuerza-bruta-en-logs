@@ -1,39 +1,61 @@
 library('ProjectTemplate')
 library(dplyr)
 library(caret)
-library(kknn)
-library(plyr)
-library(hash)
+library(sqldf)
+library(arules)
+
+"""
+#--------------------------------------VALIDACION CRUZADA---------------------------
+#NO APLICAMOS VALIDACION CRUZADA DEBIDO A QUE EL DATASET POSEE MUCHAS FILAS Y TARDA MUCHO,
+#SIN EMBARGO AQUI ESTA LA PRUEBA QUE LO HICIMOS.
+
+ -#Calculamos la cantidad de filas
+-n <- dim(df)[1]
+
+#PROBAMOS CON DISTINTOS K E IGUAL SE TARDA BASTANTE.
+-#Utilizamos 5 folds
+-folds <- createFolds(1:n, 200000)
+-  
+-for (k in 1:200000){
+-    muestra <- folds[[k]]
+-    testData <- df[muestra, ]
+-    trainingData <- df[-muestra, ]
+    modelo <- train.kknn(source_ip ~ ., data = trainingData, kmax = 5)
+   prediccion <- predict(modelo, testData[, -200000])
+   
+    
+}
+
+"""
 
 #Leemos el .csv
 df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.csv")  # read csv file 
-#Modificamos la columna star_time a un formato mas entendible y guardamos la modificacion en el dataframe.
 df2 <- df[,"start_time"]
+#Transformamos la columna tiempo
 df["start_time"] <- as.POSIXct(df2, origin="1970-01-01")
+#Ordenamos el dataset por tiempo
 df <- arrange(df, start_time,source_ip)
+#Seleccionamos las columnas que nos ayudan a indicar si hay un ataque en el set de logs.
+df <- select(df,source_ip, destination_ip, start_time, destination_port, num_packets, num_bytes)
 
+#Categorizamos la columna num_packets
+df[["num_packets"]] <- ordered(cut(df[[ "num_packets"]],
+                                   c(0,median(df[[ "num_packets"]][df[[ "num_packets"]]<1016.098]),median(df[[ "num_packets"]][df[[ "num_packets"]]>1016.098]),Inf)),
+                               labels = c("NumBajo", "NumMedio", "NumAlto"))
 
-#para facilitar que encontremos un ataque nos concentraremos en el puerto del destino, los paquetes y bytes enviados.
-test <- select(obj,destination_port, num_packets, num_bytes)
-#los datos útiles son: ip, tiempo, número de paquetes y puerto
-test <- select(obj,source_ip, start_time, destination_port, num_packets, num_bytes)
+#Categorizamos la columna num_bytes
+df[["num_bytes"]] <- ordered(cut(df[[ "num_bytes"]],
+                                 c(0,median(df[[ "num_bytes"]][df[[ "num_bytes"]]<850]),median(df[[ "num_bytes"]][df[[ "num_bytes"]]>850]),Inf)),
+                             labels = c("Bajo", "Medio", "Alto"))
 
+#Seleccionamos las variables que utilizaremos en la matriz de transacciones.
+df2 <- select(df,source_ip,destination_ip, num_packets, num_bytes)
+df2 <- as(df2, "transactions")
 
-#Now viene la parte donde está la magia, el k medias deberían de aplicarlo sobre la cantidad de paquetes
-#y así If not, cuenten la cantidad de peticiones por IP y agrupen
-sourceReq <- obj %>% group_by(source_ip) %>% count(source_ip,sort=TRUE)
-#Y ahí van a obtener 2 grupos (deben indicarselo al kmedias)
-#Pero la idea del kmedias es que lo apliquen a los paquetes/solicitudes y a partir de allí todo aquel que entre en un grupo A es porque va a atacar y el que entre en el B no
+#Generamos las reglas.
+#Buscamos aquellas reglas que ocurran poco pero con alta confianza.
+rules <- apriori(df2,parameter = list(support = 0.001, confidence = 1.0))
+summary(rules)
 
-#k-means
-packets <- select (obj,source_ip, num_packets)
-plot(packets, pch = 19)
-grupos <- kmeans(packets, 2, iter.max = 10) 
-plot(packets, pch = 19)
-points(grupos$centers, pch = 19, col = "blue", cex = 2)
-points(packets, col = grupos$cluster + 1, pch = 19)
-
-
-#Ahora la probabilidad
-#Yo lo que haría es que vería qué tantas Ip están lejos de los centros como para saber cual entraría a cual grupo
-
+#Analizamos las reglas que nos interesa.
+inspect( subset( rules, subset = rhs %pin% "destination_ip=" & lhs %pin% "source_ip=" & lhs %pin% "num_bytes=" & lhs %pin% "num_packets=" & lift >3))
