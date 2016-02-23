@@ -58,7 +58,7 @@ for (i in ipsource){
 #Transformamos el vector resultante en una columna del dataframe.
 df[, "tiempototal"] <- resul
 
-#Categorizamos la columna tiempototal
+
 #Si los request duran menos de 1 minuto entre ellos consideramos que es un tiempo bajo.
 #Si los request duran más de 1 min y menos de una hora consideramos que el tiempo es medio.
 #Si los request duran más de 1 hora entre ellos 

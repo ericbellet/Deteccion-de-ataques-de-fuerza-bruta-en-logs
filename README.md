@@ -22,7 +22,7 @@
 * install.packages('tidyr')
 
 ### Contenido
-* En la carpeta docs -> Diagrama QVM Process.
+* En la carpeta docs -> Diagrama QMV Process.
 * En la carpeta docs -> databook.
 * En la carpeta src -> script.R.
 * En la carpeta data -> Dataset de logs.
