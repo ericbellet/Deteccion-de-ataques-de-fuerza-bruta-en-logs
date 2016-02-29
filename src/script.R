@@ -165,9 +165,17 @@ myfunction <- function(df){
   print(paste0("Soporte de la regla con más confianza: ", soporte))
   print(paste0("Lift de la regla con más confianza: ", lift))
   
+ 
+  
+  if (confianzaAlta < 1.0){
+    #En caso que la confianza maxima no es muy alta, retornar la confianza.
+    return(confianzaAlta)
+  }else{
+  
   #Ya que las reglas generadas son de alta confianza, el soporte es un buen valor para 
   #una probabilidad aproximada.
   return(1-soporte)
+  }
 }
 
 
@@ -177,8 +185,9 @@ df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.cs
 
 #Genera un subsetting.
 #df<-df[1:200000, ]
+
 #Genera un sample
-#df <- df[sample(nrow(df), 10), ]
+#df <- df[sample(nrow(df), 100), ]
 
 #Llamamos a la funcion. 
 probabilidadTotal <- myfunction(df)
