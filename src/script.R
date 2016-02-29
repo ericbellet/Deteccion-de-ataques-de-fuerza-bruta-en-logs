@@ -1,9 +1,8 @@
 library('ProjectTemplate')
 library(dplyr)
-library(caret)
 library(sqldf)
 library(arules)
-#Usamos la guía de estilo de R.
+
 
 #--------------------------------------VALIDACIóN CRUZADA---------------------------
 #APLICAMOS VALIDACIóN CRUZADA PERO DEBIDO A QUE EL DATASET POSEE MUCHAS FILAS, TARDA MUCHO
@@ -25,7 +24,7 @@ library(arules)
 #}
 
 #-------------------------------FUNCION------------------------------------------
-
+#Usamos la guía de estilo de R.
 myfunction <- function(df){
   # Calcula la probabilidad de que en un dataset de logs haya un ataque.
   #
@@ -78,8 +77,8 @@ myfunction <- function(df){
   
   
   #Si los request duran 1 segundo o menos entre ellos consideramos que es un tiempo bajo.
-  #Si los request duran más de 1 seg y menos de una hora consideramos que el tiempo es medio.
-  #Si los request duran más de 1 hora entre ellos 
+  #Si los request duran más de 1 seg consideramos que el tiempo es alto.
+ 
   
   df[["tiempototal"]] <- ordered(cut(df[["tiempototal"]],
                                      c(-Inf, 1, Inf)),
@@ -107,15 +106,26 @@ myfunction <- function(df){
 
   
   
-  #Si el lift es 1 o muy cerca de uno significa que la relacion es producto del azar.
-  #Si el lift es mayor a 1 indica una relación fuerte y aparecen juntos con más frecuencia.
+
   
-  #Guardamos todos los valores del inspect.
+  
+  #-----------------------------------OJO AL COMENTARIO----------------------
+  #Segun el databook los ataques se pueden detectar visualizando si un source_ip hizo
+  # multiples accesos a un mismo destination_port, enviando muchas veces el mismo numero
+  # de paquetes de mismo tamano a un destination_ip. La siguiente regla cumple con todos
+  # estos requisitos.
+  
+  
   probabilidad <- subset( rules, subset = rhs %pin% "destination_ip=" & 
                             lhs %pin% "source_ip=" & lhs %pin% "destination_port=" & 
                             lhs %pin% "tiempototal=Bajo" & lhs %pin% "num_bytes=" & 
                             lhs %pin% "num_packets=" & lift >1)
   
+  #Si el lift es 1 o muy cerca de uno significa que la relacion es producto del azar.
+  #Si el lift es mayor a 1 indica una relación fuerte y aparecen juntos con más frecuencia.
+  
+  #En general la confianza es muy alta, ya que la regla que nos interesa cumple con
+  #muchos antecedentes, es decir que cuando la encuentra es confiable.
   confianzaAlta <- quality((sort(probabilidad, decreasing = TRUE, 
                                      na.last = NA,by = "confidence",
                                      order = FALSE)[1]))
@@ -123,8 +133,9 @@ myfunction <- function(df){
   todosloslift <- quality((sort(probabilidad, decreasing = TRUE, 
                                  na.last = NA,by = "lift",
                                  order = FALSE)))[3]
-  vallifit <- colMeans(todosloslift)
   
+  #Hacemos in inspect de las reglas con los lift mas altos.
+  vallifit <- colMeans(todosloslift)
   inspect( subset( rules, subset = rhs %pin% "destination_ip=" & lhs %pin% "source_ip=" & 
                      lhs %pin% "destination_port=" & lhs %pin% "tiempototal=Bajo" & 
                      lhs %pin% "num_bytes=" & lhs %pin% "num_packets=" & lift >vallifit))
@@ -154,6 +165,8 @@ myfunction <- function(df){
   print(paste0("Soporte de la regla con más confianza: ", soporte))
   print(paste0("Lift de la regla con más confianza: ", lift))
   
+  #Ya que las reglas generadas son de alta confianza, el soporte es un buen valor para 
+  #una probabilidad aproximada.
   return(1-soporte)
 }
 
@@ -165,7 +178,7 @@ df <- read.csv("C:/Users/EricBellet/Desktop/Asignacion2/Asignacion2/data/data.cs
 #Genera un subsetting.
 #df<-df[1:200000, ]
 #Genera un sample
-df <- df[sample(nrow(df), 10), ]
+#df <- df[sample(nrow(df), 10), ]
 
 #Llamamos a la funcion. 
 probabilidadTotal <- myfunction(df)
